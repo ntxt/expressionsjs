@@ -18,15 +18,17 @@ function parseExpr(data){
 		var entity = {amount:21, name:'Olaboga'};
 		var result = context.entity(entity).evaluate(e);
 		var view = context.render(e);
-		$('.evalResult').html(result ? "prawda" : "fałsz");
+		$('.evalResult').html(result ? "true" : "false");
 		$('.view').html(view);
-		$('.expression').mouseenter(showContextMenu);
+		$('.interactive').mouseenter(showContextMenu);
 	}catch(e){
 		$('.error').html(e);
 	}
 }
 
 function showContextMenu(){
-	var pos = $(this).offset();
-	$('.contextMenu').animate({left:pos.left + $(this).width(), top:pos.top});
+    var parent = $(this).parent();
+	var pos = parent.offset();
+    var w = parent.width();
+	$('.contextMenu').stop(true).animate({left:pos.left + w + 5, top:pos.top});
 }
