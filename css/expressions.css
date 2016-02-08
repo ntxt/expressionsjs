@@ -1,0 +1,92 @@
+@charset "utf-8";
+body *{
+box-sizing:border-box;
+}
+
+.expression {
+    border: 1px solid gray;
+		border-radius:0.5em;
+    display: inline-block;
+    margin: 0.5em;
+		position: relative;
+}
+
+.variable{
+  font-family:"Courier New", Courier, monospace;
+	color:#33CC33;
+}
+
+.literal{
+  color:#003399;
+}
+
+.expression.binary > * {
+    border: 0 none;
+    display: table-cell;
+}
+
+.expression.binary {
+    border: 0 none;
+    margin: 0.25em 0.5em 0.25em 0.5em;
+		display: inline-table;
+}
+
+.expression.binary > .operator {
+    border-radius: 0;
+    margin: 0;
+    padding: 0.2em 0.5em;
+}
+
+.operator {
+    background-color: gray;
+    border-radius: 0.3em;
+    color: white;
+    margin: 0.2em;
+    padding: 0.2em;
+}
+
+.list > .operator {
+    height: 2em;
+    line-height: 2em;
+    margin: -1em 0;
+		border-radius: 0 0.5em 0.5em 0;
+		display:inline-block;
+		vertical-align: middle;
+}
+
+.list.expression > ul > li {
+    list-style: outside none none;
+}
+
+
+.argument {
+    background-color: lightgray;
+    border-radius: 0.3em;
+    padding: 0.2em;
+}
+
+.argument:first-of-type{
+	border-radius:0.3em 0 0 0.3em
+}
+.argument:last-of-type{
+	border-radius: 0 0.3em 0.3em 0
+}
+
+.interactive:hover{
+		box-shadow: 0 0 8px green;
+}
+
+.expression ul {
+    margin: 0.2em;
+    padding: 0;
+		display: inline-block;
+		vertical-align: middle;
+}
+
+.contextMenu{
+  display:block;
+	position:absolute;
+	min-width:5em;
+	min-height:1em;
+	box-shadow:0 0 4px gray;
+}
