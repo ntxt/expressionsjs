@@ -11,24 +11,26 @@ $(document).ready(function(){
 });
 
 var context = net.ntxt.expressions.context();
+context.addRenderers(net.ntxt.expressions.renderers.html());
+context.addRenderers(net.ntxt.expressions.renderers.plaintext());
 
 function parseExpr(data){
 	try{
 		var e = context.fromJsonStruct(data);
-		var entity = {amount:21, name:'Olaboga'};
-		var result = context.entity(entity).evaluate(e);
-		var view = context.render(e);
+		var cfg = {amount:21, name:'Olaboga'};
+		var result = context.context(cfg).evaluate(e);
+		var view1 = context.render(e, 'html');
+		var view2 = context.render(e, 'plaintext');
 		$('.evalResult').html(result ? "true" : "false");
-		$('.view').html(view);
-		$('.interactive').mouseenter(showContextMenu);
+		$('.view1').html(view1);
+		$('.view2').html(view2);
+		$('.expression').mouseenter(showContextMenu);
 	}catch(e){
 		$('.error').html(e);
 	}
 }
 
 function showContextMenu(){
-    var parent = $(this).parent();
-	var pos = parent.offset();
-    var w = parent.width();
-	$('.contextMenu').stop(true).animate({left:pos.left + w + 5, top:pos.top});
+	var pos = $(this).offset();
+	$('.contextMenu').animate({left:pos.left + $(this).width(), top:pos.top});
 }

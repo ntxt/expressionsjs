@@ -6,26 +6,19 @@ net.ntxt.expressions.context = (function context()
 {
   var contextAPI = {
 		fromJsonStruct : fromJsonStruct,
-		entity         : entity,
+		context        : context,
 		addOp          : addOp,
 		addVar         : addVar,
+  	addRenderers   : addRenderers,
+  	addRenderer    : addRenderer,
 		evaluate       : evaluate,
 		render         : render,
-		operators      : ops
+		operators      : operators
 	},
 	self = this,
-	_entity = {},
-	operators = {},
-	templates = {
-		operator       : $('<span>').addClass('operator interactive'),
-		binaryArgument : $('<span>').addClass('argument interactive'),
-		expression     : $('<div>').addClass('expression'),
-		listExpression : $('<div>').addClass('list expression'),
-		list           : $('<ul>'),
-		listElement    : $('<li>'),
-		variable       : $('<span>').addClass('variable'),
-		literal        : $('<span>').addClass('literal')		
-	},
+	_context = {},
+	_operators = {},
+	renderTargets = {},
 	types = {
 		'boolean':true,
 		'string' :true,
@@ -37,20 +30,32 @@ net.ntxt.expressions.context = (function context()
 		throw msg;
 	};
 	
-	function ops(){return operators;};
-	
-	/** the context object to evaluate variables against */
-	function entity(){
-		if(arguments.length > 0){
-		  _entity = arguments[0];
-			return contextAPI;
+	function operators(){
+		if(arguments.length === 1){
+			var opName = arguments[0];
+			return _operators[opName];
 		}else{
-		  return _entity;
+			return _operators;
 		}
 	};
 	
-	function addOp(name, type, label, evaluateFun, renderFun){
-		operators[name] = {type:type, label:label, evaluate:evaluateFun, render:renderFun};
+	/** the context object to evaluate variables against */
+	function context(){
+		if(arguments.length > 0){
+		  _context = arguments[0];
+			return contextAPI;
+		}else{
+		  return _context;
+		}
+	};
+	
+	function addOp(name, type, label, evaluateFun){
+		_operators[name] = {
+			type:type,
+			label:label,
+			evaluate:evaluateFun,
+			renderers:{}
+		};
 		return contextAPI;
 	};
 	
@@ -59,20 +64,64 @@ net.ntxt.expressions.context = (function context()
 		return contextAPI;
 	};
 	
+	function addRenderer(op, target, renderFun){
+		if(!_operators.hasOwnProperty(op))
+			throw "Cannot add renderer to an unrecognized operator: " + op;
+		renderTargets[target] = true;
+		_operators[op].renderers[target] = renderFun;
+	}
+	
+	function addRenderers(provider){
+		for(var op in _operators){
+			try{
+  			addRenderer(op, provider.target, provider.getRenderer(op)); 
+			}catch(e){
+				throw "error adding renderer for " + op + "\n" + e;
+			}
+		}
+	}	
+	
 	function evaluate(expr){
 		var op   = expr.op || err("missing operator in expr:" + expr),
-				def  = operators[op] || err("unknown operator: " + op),
+				def  = _operators[op] || err("unknown operator: " + op),
         args = expr.args || [];
 				
     return def.evaluate.apply(self, args);
 	};
 	
-	function render(expr){
+	function render(expr, target){
 		var op = expr.op,
-		    renderFun = operators[op].render,
-				view = renderFun.call(self, expr);
+		    renderFun = getRenderer(op, target),
+				view = renderFun.call(contextAPI, expr, target);
 		return view;
 	};
+	
+	function getRenderer(op, target){
+		if(!_operators.hasOwnProperty(op))
+			throw "Missing definition of operator: " + op + "; known ones: " + getOpNames().join(', ');
+		if(!_operators[op].renderers.hasOwnProperty(target))
+			throw "Missing renderer for operator: " + op + " and target: " + target + "; available ones: " + getTargets(op).join(', ');
+		return _operators[op].renderers[target];
+	}
+	
+	function getOpNames(){
+		var names = [];
+		for(var op in _operators){ names.push(op); }
+		return names;
+	}
+	
+	function getTargets(){
+		var targets = [],
+		    src;
+		if(arguments.length > 0 && typeof arguments[0] === "string"){
+			var op = arguments[0]
+			src = _operators[op].renderers;    
+		}else{
+			src = renderTargets;
+		}
+		for(var t in src){ targets.push(t); }
+		return targets;
+	}
 	
 	function fromJsonStruct(expStruct){
 		var maxRecursion = 10,
@@ -106,9 +155,9 @@ net.ntxt.expressions.context = (function context()
 			if(l !== 1) err("one argument (property name or function) required");
 			var val;
 			if(typeof a[0] === "function")
-			  val = a[0].call(_entity);
-      else if(typeof a[0] === "string" && _entity.hasOwnProperty(a[0])) 
-				val = _entity[a[0]];
+			  val = a[0].call(_context);
+      else if(typeof a[0] === "string" && _context.hasOwnProperty(a[0])) 
+				val = _context[a[0]];
 			else
 			  err("cannot evaluate " + a[0] + " in this context");
 				
@@ -124,102 +173,46 @@ net.ntxt.expressions.context = (function context()
 		return a[0];		
 	};};
 	
-	function genericVarRenderer(ex){
-		var op = ex.op,
-				varName = ex.args[0],
-				view = templates.variable.clone()
-				 .addClass('op-'+op)
-				 .text(varName);
-		return view;
-	};
 	
-	function genericLiteralRenderer(ex){
-		var op = ex.op,
-				varName = ex.args[0],
-				view = templates.literal.clone()
-				 .addClass('op-'+op)
-				 .text(varName);
-		return view;
-	};
-	
-	function genericListRenderer(ex){
-		var op = ex.op,
-				view = templates.listExpression.clone(),
-				header = templates.operator.clone(),
-				list = templates.list.clone();
-				
-		view.addClass('op-'+op)
-		    .append(header)
-				.append(list);
-		header.text(operators[op].label);
-		$.each(ex.args, function(i, arg){
-			var argView = templates.listElement.clone().append(render(arg));
-			list.append(argView);											 
-		});
-		return view;
-  };
-	
-	function genericBinaryOpRenderer(ex){
-		var op = ex.op,
-				view = templates.expression.clone(),
-				arg1 = ex.args[0],
-				arg2 = ex.args[1],				
-				arg1View = templates.binaryArgument.clone(),
-				arg2View = templates.binaryArgument.clone(),
-				opView = templates.operator.clone();
-				
-		view.addClass('binary op-'+op)
-		    .append(arg1View)
-		    .append(opView)
-			  .append(arg2View);
-		opView.text(operators[op].label);
-		arg1View.append(render(arg1));
-		arg2View.append(render(arg2));
-
-		return view;	
-	};
 	// ============= OPERATORS ===============
 	
-	addOp('VAR-STRING', 'string', '#', genericVarEvaluator('string'), genericVarRenderer);
-	addOp('VAR-NUMBER', 'number', '#', genericVarEvaluator('number'), genericVarRenderer);	
-	addOp('VAR-BOOLEAN', 'boolean', '#', genericVarEvaluator('boolean'), genericVarRenderer);	
-	addOp('VAR-DATE', 'date', '#', genericVarEvaluator('date'), genericVarRenderer);		
-	
-	addOp('VAL-STRING', 'string', '', genericLiteralEvaluator('string'), genericLiteralRenderer);
-	addOp('VAL-NUMBER', 'number', '', genericLiteralEvaluator('number'), genericLiteralRenderer);
+	addOp('VAR-STRING', 'string', '#', genericVarEvaluator('string'));
+	addOp('VAR-NUMBER', 'number', '#', genericVarEvaluator('number'));	
+	addOp('VAR-BOOLEAN', 'boolean', '#', genericVarEvaluator('boolean'));	
+	addOp('VAR-DATE', 'date', '#', genericVarEvaluator('date'));		
+	addOp('VAL-STRING', 'string', '', genericLiteralEvaluator('string'));
+	addOp('VAL-NUMBER', 'number', '', genericLiteralEvaluator('number'));
 
 				
 	addOp('AND', 'boolean', 'and', 
 		function e(){
 			var a = arguments,
 			    l = a.length;
-			if(l < 2) err("at least two arguments required");
+			if(l < 2) err("at least two arguments required, got: " + l);
 			for(var i=0; i<l; i++){
 				if(evaluate(a[i]) !== true) return false;
 			}
 			return true;
-		},
-		genericListRenderer
+		}
   );
-	
+
 	addOp('EQUAL', 'boolean', '=',
 		function e(){
 			var a = arguments,
 			    l = a.length;
-			if(l !== 2) err("exactly two arguments required");	
+			if(l !== 2) err("exactly two arguments required, got: " + l);	
 			return evaluate(a[0]) === evaluate(a[1]);
-		},
-		genericBinaryOpRenderer
+		}
   );
 
+	
 	addOp('GREATER', 'boolean', '>',
 		function e(){
 			var a = arguments,
 			    l = a.length;
-			if(l !== 2) err("exactly two arguments required");
+			if(l !== 2) err("exactly two arguments required, got: " + l);
 			return evaluate(a[0]) > evaluate(a[1]);			
-		},
-		genericBinaryOpRenderer
+		}
   );
 	
 
@@ -227,11 +220,11 @@ net.ntxt.expressions.context = (function context()
 		function e(){
 			var a = arguments,
 			    l = a.length;
-			if(l !== 2) err("exactly two arguments required");
+			if(l !== 2) err("exactly two arguments required, got: " + l);
 			return evaluate(a[0]) < evaluate(a[1]);			
-		},
-		genericBinaryOpRenderer
+		}
   );	
+	
 	
   return contextAPI;
 });
