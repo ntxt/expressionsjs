@@ -1,0 +1,14 @@
+{"AND":[
+	{"GREATER":[
+	  {"VAR-NUMBER":"amount"},					
+	  {"VAL-NUMBER":20}
+	]},
+	{"EQUAL":[
+	  {"VAR-STRING":"name"},
+		{"VAL-STRING":"Olaboga"}
+	]},
+	{"LESS":[
+	  {"VAR-NUMBER":"amount"},
+		{"VAL-NUMBER":50}
+	]}
+]}
