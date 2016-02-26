@@ -1,3 +1,4 @@
+
 var net = net || {};
 net.ntxt = net.ntxt || {};
 net.ntxt.expressions = net.ntxt.expressions || {};
@@ -29,5 +30,5 @@ net.ntxt.expressions.renderer = (function render(){
         
     };
     
-    return rendererAPI;
+    return rendererAPI;a
 });

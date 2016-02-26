@@ -5,28 +5,31 @@ net.ntxt.expressions = net.ntxt.expressions || {};
 net.ntxt.expressions.context = (function context()
 {
   var contextAPI = {
-        fromJsonStruct : fromJsonStruct,
-        context        : context,
-        addOp          : addOp,
-        addVar         : addVar,
+      fromJsonStruct : fromJsonStruct,
+      context        : context,
+      addOp          : addOp,
+      addVar         : addVar,
       addRenderers   : addRenderers,
       addRenderer    : addRenderer,
-        evaluate       : evaluate,
-        render         : render,
-        operators      : operators
+      evaluate       : evaluate,
+      render         : render,
+      operators      : operators
+
     },
     self = this,
     _context = {},
     _operators = {},
     renderTargets = {},
     types = {
-        'boolean':true,
-        'string' :true,
-        'number' :true,
-        'date'   :true
+      'boolean':true,
+      'string' :true,
+      'number' :true,
+      'date'   :true
     };
     
     function err(msg){
+    	if(console && console.log) console.log('ERROR: ' + msg);
+
         throw msg;
     };
     
@@ -79,6 +82,7 @@ net.ntxt.expressions.context = (function context()
         for(var op in _operators){
             try{
               addRenderer(op, provider.target, provider.getRenderer(op)); 
+
             }catch(e){
                 throw "error adding renderer for " + op + "\n" + e;
             }
@@ -86,17 +90,18 @@ net.ntxt.expressions.context = (function context()
     }    
     
     function evaluate(expr){
-        var op   = expr.op || err("missing operator in expr:" + expr),
-                def  = _operators[op] || err("unknown operator: " + op),
-        args = expr.args || [];
+        var op = expr.op || err("missing operator in expr:" + expr),
+            def  = _operators[op] || err("unknown operator: " + op),
+            args = expr.args || [];
                 
-    return def.evaluate.apply(self, args);
+        return def.evaluate.apply(self, args);
+
     };
     
     function render(expr, target){
         var op = expr.op,
             renderFun = getRenderer(op, target),
-                view = renderFun.call(contextAPI, expr, target);
+            view = renderFun.call(contextAPI, expr, target);
         return view;
     };
     
@@ -116,9 +121,11 @@ net.ntxt.expressions.context = (function context()
     
     function getTargets(){
         var targets = [],
-            src;
+            src
+            op;
         if(arguments.length > 0 && typeof arguments[0] === "string"){
-            var op = arguments[0]
+            op = arguments[0];
+
             src = _operators[op].renderers;    
         }else{
             src = renderTargets;
@@ -182,7 +189,7 @@ net.ntxt.expressions.context = (function context()
     	if(typeof exp.op !== "string") err("Missing expression type");
     	if(!Array.isArray(exp.args)) err("Missing expression arguments");
     	if(!hasOp(exp.op)) err("Unknown operator: " + exp.op + "; currently known: " + getOpNames().join(', '));	
-    	return _operators[op].type;
+    	return _operators[exp.op].type;
     }
     
     function validate(args, validatorFn){
@@ -228,7 +235,8 @@ net.ntxt.expressions.context = (function context()
     addOp('AND', 'boolean', 'and', 
         function e(){
             var a = validate(arguments, validateTwoOrMoreBoolean);
-            for(var i=0; i<l; i++){
+            for(var i=0; i<a.length; i++){
+
                 if(evaluate(a[i]) !== true) return false;
             }
             return true;

@@ -26,7 +26,7 @@ function parseExpr(data){
         $('.view2').html(view2);
         $('.expression').mouseenter(showContextMenu);
     }catch(e){
-        $('.error').html(e);
+        $('.error').html(e + '<br/>file: ' + e.fileName + '<br/>line: ' + e.lineNumber);
     }
 }
 
