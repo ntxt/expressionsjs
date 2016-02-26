@@ -6,28 +6,37 @@ $(document).ready(function(){
   .fail(function(jqXHR, textStatus, errorThrown) {
     console.log( "error: " + errorThrown);
   });
-    
+  
+  $('input').change(evaluate);
+
     
 });
 
-var context = net.ntxt.expressions.context();
-context.addRenderers(net.ntxt.expressions.renderers.html());
-context.addRenderers(net.ntxt.expressions.renderers.plaintext());
+var expAPI = net.ntxt.expressions.context();
+expAPI.addRenderers(net.ntxt.expressions.renderers.html());
+expAPI.addRenderers(net.ntxt.expressions.renderers.plaintext());
+var rules;
 
 function parseExpr(data){
     try{
-        var e = context.fromJsonStruct(data);
-        var cfg = {amount:21, name:'Olaboga'};
-        var result = context.context(cfg).evaluate(e);
-        var view1 = context.render(e, 'html');
-        var view2 = context.render(e, 'plaintext');
-        $('.evalResult').html(result ? "true" : "false");
+        rules = expAPI.fromJsonStruct(data);
+        var view1 = expAPI.render(rules, 'html');
+        var view2 = expAPI.render(rules, 'plaintext');
         $('.view1').html(view1);
         $('.view2').html(view2);
         $('.expression').mouseenter(showContextMenu);
+        evaluate();
     }catch(e){
         $('.error').html(e + '<br/>file: ' + e.fileName + '<br/>line: ' + e.lineNumber);
     }
+}
+
+function evaluate(){
+	var amount = $('input[name=amount]').val();
+	var name = $('input[name=name]').val();
+	var entity = {amount:parseInt(amount), name:name};
+	var result = expAPI.context(entity).evaluate(rules);
+    $('.evalResult').html(result ? "true" : "false");
 }
 
 function showContextMenu(){
