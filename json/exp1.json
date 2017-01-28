@@ -1,14 +1,30 @@
-{"AND":[
-	{"GREATER":[
-	  {"VAR-NUMBER":"amount"},					
-	  {"VAL-NUMBER":20}
+{"OR":[
+	{"AND":[
+		{"GREATER":[
+		  {"VAR-NUMBER":"amount"},					
+		  {"VAL-NUMBER":20}
+		]},
+		{"EQUAL":[
+		  {"VAR-STRING":"name"},
+			{"VAL-STRING":"Olaboga"}
+		]},
+		{"LESS":[
+		  {"VAR-NUMBER":"amount"},
+			{"VAL-NUMBER":50}
+		]}
 	]},
-	{"EQUAL":[
-	  {"VAR-STRING":"name"},
-		{"VAL-STRING":"Olaboga"}
-	]},
-	{"LESS":[
-	  {"VAR-NUMBER":"amount"},
-		{"VAL-NUMBER":50}
+	{"AND":[
+		{"GREATER":[
+		  {"VAR-NUMBER":"amount"},					
+		  {"VAL-NUMBER":1200}
+		]},
+		{"EQUAL":[
+		  {"VAR-STRING":"name"},
+			{"VAL-STRING":"Melamina"}
+		]},
+		{"LESS":[
+		  {"VAR-NUMBER":"amount"},
+			{"VAL-NUMBER":1500}
+		]}
 	]}
 ]}

@@ -81,7 +81,7 @@ net.ntxt.expressions.context = (function context()
             try{
                 addRenderer(op, provider.target, provider.getRenderer(op)); 
             }catch(e){
-                throw "error adding renderer for " + op + "\n" + e;
+                err("error adding renderer for " + op + "\n" + e);
             }
         }
     }    
@@ -96,8 +96,9 @@ net.ntxt.expressions.context = (function context()
     
     function render(expr, target){
         var op = expr.op,
-            renderFun = getRenderer(op, target),
-            view = renderFun.call(contextAPI, expr, target);
+            renderFun = getRenderer(op, target) || err("Missing renderer for: " + op + "  and target: " + target),
+			evalResult = evaluate(expr),
+            view = renderFun.call(contextAPI, expr, target, evalResult);
         return view;
     };
     
@@ -236,7 +237,17 @@ net.ntxt.expressions.context = (function context()
             return true;
         }
     );
-
+	
+    addOp('OR', 'boolean', 'or', 
+        function e(){
+            var a = validate(arguments, validateTwoOrMoreBoolean);
+            for(var i=0; i<a.length; i++){
+                if(evaluate(a[i]) === true) return true;
+            }
+            return false;
+        }
+    );
+	
     addOp('EQUAL', 'boolean', '=',
         function e(){
 	        var a = validate(arguments, validateBinarySameType);

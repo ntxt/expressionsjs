@@ -22,7 +22,8 @@ net.ntxt.expressions.renderers.html = (function html()
       'VAR-DATE'     : genericVarRenderer,
       'VAL-STRING'   : genericLiteralRenderer,
       'VAL-NUMBER'   : genericLiteralRenderer,    
-      'AND'          : genericListRenderer,
+	  'AND'          : genericListRenderer,
+      'OR'           : genericListRenderer,
       'EQUAL'        : genericBinaryOpRenderer,
       'GREATER'      : genericBinaryOpRenderer,    
       'LESS'         : genericBinaryOpRenderer        
@@ -46,7 +47,7 @@ net.ntxt.expressions.renderers.html = (function html()
         return view;
     };
     
-    function genericListRenderer(ex, target){
+    function genericListRenderer(ex, target, evalResult){
         var self = this,
             op = ex.op,
             view = templates.listExpression.clone(),
@@ -54,8 +55,9 @@ net.ntxt.expressions.renderers.html = (function html()
             list = templates.list.clone();
                 
         view.addClass('op-'+op)
+		    .addClass(evalResult === true ? 'true' : 'false')
             .append(header)
-                .append(list);
+            .append(list);
         
         header.text(self.operators(op).label);
         $.each(ex.args, function(i, arg){
@@ -65,7 +67,7 @@ net.ntxt.expressions.renderers.html = (function html()
         return view;
   };
     
-    function genericBinaryOpRenderer(ex, target){
+    function genericBinaryOpRenderer(ex, target, evalResult){
         var self = this,
             op = ex.op,
             view = templates.expression.clone(),
@@ -76,6 +78,7 @@ net.ntxt.expressions.renderers.html = (function html()
             opView = templates.operator.clone();
                 
         view.addClass('binary op-'+op)
+			.addClass(evalResult === true ? 'true' : 'false')
             .append(arg1View)
             .append(opView)
               .append(arg2View);

@@ -12,7 +12,8 @@ net.ntxt.expressions.renderers.plaintext = (function plaintext()
       'VAR-DATE'     : genericVarRenderer,
       'VAL-STRING'   : genericLiteralRenderer,
       'VAL-NUMBER'   : genericLiteralRenderer,    
-      'AND'          : genericListRenderer,
+	  'AND'          : genericListRenderer,
+      'OR'           : genericListRenderer,
       'EQUAL'        : genericBinaryOpRenderer,
       'GREATER'      : genericBinaryOpRenderer,    
       'LESS'         : genericBinaryOpRenderer        
