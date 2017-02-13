@@ -29,7 +29,7 @@ net.ntxt.expressions.renderers.html = (function html()
       'LESS'         : genericBinaryOpRenderer        
     };
     
-  function genericVarRenderer(ex){
+  function genericVarRenderer(ex, input){
         var op = ex.op,
             varName = ex.args[0],
             view = templates.variable.clone()
@@ -38,7 +38,7 @@ net.ntxt.expressions.renderers.html = (function html()
         return view;
     };
     
-    function genericLiteralRenderer(ex, target){
+    function genericLiteralRenderer(ex, input){
         var op = ex.op,
             varName = ex.args[0],
             view = templates.literal.clone()
@@ -47,27 +47,28 @@ net.ntxt.expressions.renderers.html = (function html()
         return view;
     };
     
-    function genericListRenderer(ex, target, evalResult){
+    function genericListRenderer(ex, input){
         var self = this,
             op = ex.op,
             view = templates.listExpression.clone(),
             header = templates.operator.clone(),
-            list = templates.list.clone();
+            list = templates.list.clone(),
+			val = self.evaluate(ex, input);
                 
         view.addClass('op-'+op)
-		    .addClass(evalResult === true ? 'true' : 'false')
             .append(header)
-            .append(list);
+            .append(list)
+			.addClass(String(val));
         
         header.text(self.operators(op).label);
         $.each(ex.args, function(i, arg){
-            var argView = templates.listElement.clone().append(self.render(arg, target));
+            var argView = templates.listElement.clone().append(self.render(arg, TARGET, input));
             list.append(argView);                                             
         });
         return view;
   };
     
-    function genericBinaryOpRenderer(ex, target, evalResult){
+    function genericBinaryOpRenderer(ex, input){
         var self = this,
             op = ex.op,
             view = templates.expression.clone(),
@@ -75,16 +76,18 @@ net.ntxt.expressions.renderers.html = (function html()
             arg2 = ex.args[1],                
             arg1View = templates.binaryArgument.clone(),
             arg2View = templates.binaryArgument.clone(),
-            opView = templates.operator.clone();
+            opView = templates.operator.clone(),
+			val = self.evaluate(ex, input);
                 
         view.addClass('binary op-'+op)
-			.addClass(evalResult === true ? 'true' : 'false')
             .append(arg1View)
             .append(opView)
-              .append(arg2View);
+            .append(arg2View)
+			.addClass(String(val));
         opView.text(self.operators(op).label);
-        arg1View.append(self.render(arg1, target));
-        arg2View.append(self.render(arg2, target));
+		
+        arg1View.append(self.render(arg1, TARGET, input));
+        arg2View.append(self.render(arg2, TARGET, input));
 
         return view;    
     };

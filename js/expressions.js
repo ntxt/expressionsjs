@@ -4,20 +4,28 @@ net.ntxt = net.ntxt || {};
 net.ntxt.expressions = net.ntxt.expressions || {};
 net.ntxt.expressions.context = (function context()
 {
-  var contextAPI = {
+  var API = {
       fromJsonStruct : fromJsonStruct,
-      context        : context,
       addOp          : addOp,
+	  hasOp          : hasOp,	  
       addVar         : addVar,
+	  typeOfExp	     : typeOfExp,	  
       addRenderers   : addRenderers,
       addRenderer    : addRenderer,
       evaluate       : evaluate,
       render         : render,
       operators      : operators
     },
+	_ = {
+		assertThat					: assertThat,
+		areTwoOrMoreBoolean 	    : areTwoOrMoreBoolean,
+		areTwoOfSameType		    : areTwoOfSameType,
+		areThreeOfSameType	        : areThreeOfSameType
+		
+	},
     self = this,
-    _context = {},
     _operators = {},
+	_doDebug = false,
     renderTargets = {},
     types = {
       'boolean':true,
@@ -39,17 +47,7 @@ net.ntxt.expressions.context = (function context()
             return _operators;
         }
     };
-    
-    /** the context object to evaluate variables against */
-    function context(){
-        if(arguments.length > 0){
-          _context = arguments[0];
-            return contextAPI;
-        }else{
-          return _context;
-        }
-    };
-    
+
     function addOp(name, type, label, evaluateFun){
         _operators[name] = {
             type:type,
@@ -57,12 +55,13 @@ net.ntxt.expressions.context = (function context()
             evaluate:evaluateFun,
             renderers:{}
         };
-        return contextAPI;
+        return API;
     };
+    
     
     function addVar(name, type, valueOrFun){
         variables[name] = {type:type, value:valueOrFun};
-        return contextAPI;
+        return API;
     };
     
     function hasOp(op){
@@ -86,19 +85,20 @@ net.ntxt.expressions.context = (function context()
         }
     }    
     
-    function evaluate(expr){
+    function evaluate(expr, input){
         var op = expr.op || err("missing operator in expr:" + expr),
             def  = _operators[op] || err("unknown operator: " + op),
-            args = expr.args || [];
-                
-        return def.evaluate.apply(self, args);
+            args = expr.args || [],
+			result = def.evaluate.apply(input, args);
+			
+		expr.result = result;
+        return result;
     };
     
-    function render(expr, target){
+    function render(expr, target, input){
         var op = expr.op,
             renderFun = getRenderer(op, target) || err("Missing renderer for: " + op + "  and target: " + target),
-			evalResult = evaluate(expr),
-            view = renderFun.call(contextAPI, expr, target, evalResult);
+            view = renderFun.call(API, expr, input);
         return view;
     };
     
@@ -118,7 +118,7 @@ net.ntxt.expressions.context = (function context()
     
     function getTargets(){
         var targets = [],
-            src
+            src,
             op;
         if(arguments.length > 0 && typeof arguments[0] === "string"){
             op = arguments[0];
@@ -162,39 +162,42 @@ net.ntxt.expressions.context = (function context()
                 val;
             if(l !== 1) err("one argument (property name or function) required");
             
-            if(typeof a[0] === "function")
-                val = a[0].call(_context);
-            else if(typeof a[0] === "string" && _context.hasOwnProperty(a[0])) 
-                val = _context[a[0]];
-            else
+            if(typeof a[0] === "function"){
+                val = a[0].call(this);
+            }else if(typeof a[0] === "string" && this.hasOwnProperty(a[0])){
+                val = this[a[0]];
+            }else{
                 err("cannot evaluate " + a[0] + " in this context");
-                
-            if(typeof val === type) return val;
-            else err(val + " is of type " + typeof val + " where '" + type + "' expected");
+            }
+            if(typeof val === type){
+				return val;
+			}else{
+				err(val + " is of type " + typeof val + " where '" + type + "' expected");
+			}
         };
     };
-    
+
     function genericLiteralEvaluator(type){return function e(){
         var a = arguments,
             l = a.length;
         if(l !== 1) err("one argument (value) required");
         return a[0];        
     };};
-    
+
     function typeOfExp(exp){
-    	if(typeof exp.op !== "string") err("Missing expression type");
+    	if(typeof exp.op !== "string") err("Missing expression type (operator).");
     	if(!Array.isArray(exp.args)) err("Missing expression arguments");
     	if(!hasOp(exp.op)) err("Unknown operator: " + exp.op + "; currently known: " + getOpNames().join(', '));	
     	return _operators[exp.op].type;
     }
     
-    function validate(args, validatorFn){
+    function assertThat(args, validatorFn){
     	var error = validatorFn.call(this, args);
     	error ? err( error ) : "OK";
     	return args;
-    }
+    };
     
-    function validateBinarySameType(args){
+    function areTwoOfSameType(args){
     	if(args.length !== 2) return "Operator expects exactly 2 arguments, got: " + args.length;
     	var t1 = typeOfExp(args[0]);
     	var t2 = typeOfExp(args[1]);
@@ -202,7 +205,7 @@ net.ntxt.expressions.context = (function context()
     	return "";
     }
 
-    function validateTertiarySameType(args){
+    function areThreeOfSameType(args){
     	if(args.length !== 3) return "Operator expects exactly 3 arguments, got: " + args.length;
     	var t1 = typeOfExp(args[0]);
     	var t2 = typeOfExp(args[1]);
@@ -211,7 +214,7 @@ net.ntxt.expressions.context = (function context()
     	return "";
     }
 
-    function validateTwoOrMoreBoolean(args){
+    function areTwoOrMoreBoolean(args){
     	if(args.length < 2) return "Operator expects at least 2 arguments, got: " + args.length;
     	for(var i=0; i<args.length; i++){
     		var t = typeOfExp(args[i]);
@@ -221,18 +224,18 @@ net.ntxt.expressions.context = (function context()
     }
     // ============= OPERATORS ===============
     
-    addOp('VAR-STRING', 'string', '#', genericVarEvaluator('string'));
-    addOp('VAR-NUMBER', 'number', '#', genericVarEvaluator('number'));    
-    addOp('VAR-BOOLEAN', 'boolean', '#', genericVarEvaluator('boolean'));    
-    addOp('VAR-DATE', 'date', '#', genericVarEvaluator('date'));        
-    addOp('VAL-STRING', 'string', '', genericLiteralEvaluator('string'));
-    addOp('VAL-NUMBER', 'number', '', genericLiteralEvaluator('number'));
+    addOp('VAR-STRING',   'string',   '#', genericVarEvaluator('string'));
+    addOp('VAR-NUMBER',   'number',   '#', genericVarEvaluator('number'));    
+    addOp('VAR-BOOLEAN',  'boolean',  '#', genericVarEvaluator('boolean'));    
+    addOp('VAR-DATE',     'date',     '#', genericVarEvaluator('date'));        
+    addOp('VAL-STRING',   'string',   '',  genericLiteralEvaluator('string'));
+    addOp('VAL-NUMBER',   'number',   '',  genericLiteralEvaluator('number'));
 
     addOp('AND', 'boolean', 'and', 
         function e(){
-            var a = validate(arguments, validateTwoOrMoreBoolean);
-            for(var i=0; i<a.length; i++){
-                if(evaluate(a[i]) !== true) return false;
+            var a = _.assertThat(arguments, _.areTwoOrMoreBoolean);
+            for(var i=0; i < a.length; i++){
+                if(API.evaluate(a[i], this) !== true) return false;
             }
             return true;
         }
@@ -240,49 +243,50 @@ net.ntxt.expressions.context = (function context()
 	
     addOp('OR', 'boolean', 'or', 
         function e(){
-            var a = validate(arguments, validateTwoOrMoreBoolean);
-            for(var i=0; i<a.length; i++){
-                if(evaluate(a[i]) === true) return true;
+            var a = _.assertThat(arguments, _.areTwoOrMoreBoolean);
+            for(var i=0; i < a.length; i++){
+                if(API.evaluate(a[i], this) === true) return debug = true;
             }
-            return false;
+            return debug = false;
         }
     );
 	
     addOp('EQUAL', 'boolean', '=',
         function e(){
-	        var a = validate(arguments, validateBinarySameType);
-	        return evaluate(a[0]) === evaluate(a[1]);
+	        var a = _.assertThat(arguments, _.areTwoOfSameType);
+	        return API.evaluate(a[0], this) === API.evaluate(a[1]);
         }
     );
 
     addOp('NOT-EQUAL', 'boolean', '<>',
         function e(){
-            var a = validate(arguments, validateBinarySameType);
-            return evaluate(a[0]) !== evaluate(a[1]);
+            var a = _.assertThat(arguments, _.areTwoOfSameType);
+            return API.evaluate(a[0], this) !== API.evaluate(a[1]);
         }
     );
     
     addOp('GREATER', 'boolean', '>',
         function e(){
-            var a = validate(arguments, validateBinarySameType);
-            return evaluate(a[0]) > evaluate(a[1]);
+            var a = _.assertThat(arguments, _.areTwoOfSameType);
+            return API.evaluate(a[0], this) > API.evaluate(a[1]);
         }
     );
 
     addOp('LESS', 'boolean', '<',
         function e(){
-            var a = validate(arguments, validateBinarySameType);
-            return evaluate(a[0]) < evaluate(a[1]);
+            var a = _.assertThat(arguments, _.areTwoOfSameType);
+            return API.evaluate(a[0], this) < API.evaluate(a[1]);
         }
     );    
     
     addOp('BETWEEN', 'boolean', 'between',
         function e(){
-            var a = validate(arguments, tertiarySameType);
-            return evaluate(a[0]) <= evaluate(a[1]) && evaluate(a[1]) <= evaluate(a[2]);
+            var a = _.assertThat(arguments, _.areThreeOfSameType);
+            return API.evaluate(a[0], this) <= API.evaluate(a[1]) && API.evaluate(a[1]) <= API.evaluate(a[2]);
         }
-    );      
-    return contextAPI;
+    ); 
+
+    return API;
 });
                 
 Array.isArray||(Array.isArray=function(a){return''+a!==a&&{}.toString.call(a)=='[object Array]'});

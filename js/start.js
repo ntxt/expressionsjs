@@ -1,3 +1,10 @@
+
+var expAPI = net.ntxt.expressions.context();
+expAPI.addRenderers(net.ntxt.expressions.renderers.html());
+expAPI.addRenderers(net.ntxt.expressions.renderers.plaintext());
+var rules;
+
+
 $(document).ready(function(){
   $.getJSON('./json/exp1.json')
   .done(function(data){
@@ -13,24 +20,22 @@ $(document).ready(function(){
     
 });
 
-var expAPI = net.ntxt.expressions.context();
-expAPI.addRenderers(net.ntxt.expressions.renderers.html());
-expAPI.addRenderers(net.ntxt.expressions.renderers.plaintext());
-var rules;
+
 
 function parseExpr(data){
     try{
         rules = expAPI.fromJsonStruct(data);
+		evaluate();
 		render();
         $('.expression').mouseenter(showContextMenu);
-        evaluate();
+        
     }catch(e){
         $('.error').html(e + '<br/>file: ' + e.fileName + '<br/>line: ' + e.lineNumber);
     }
 }
 function render(){
-	expAPI.context(getInput());
-    var view1 = expAPI.render(rules, 'html');
+	//expAPI.context(getInput());
+    var view1 = expAPI.render(rules, 'html', getInput());
 	var view2 = expAPI.render(rules, 'plaintext');
 	$('.view1').html(view1);
 	$('.view2').html(view2);
@@ -38,7 +43,7 @@ function render(){
 
 function evaluate(){
 	var entity = getInput();
-	var result = expAPI.context(entity).evaluate(rules);
+	var result = expAPI.evaluate(rules, entity);
     $('.evalInput').removeClass("false true").addClass(result ? "true" : "false");
 }
 

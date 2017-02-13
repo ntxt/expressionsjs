@@ -26,7 +26,7 @@ net.ntxt.expressions.renderers.plaintext = (function plaintext()
         return view;
     };
     
-    function genericLiteralRenderer(ex, target){
+    function genericLiteralRenderer(ex){
         var self = this,
             op = ex.op,
                 varName = ex.args[0],
@@ -34,13 +34,13 @@ net.ntxt.expressions.renderers.plaintext = (function plaintext()
         return view;
     };
     
-    function genericListRenderer(ex, target){
+    function genericListRenderer(ex){
         var self = this,
             op = ex.op,
                 view = "( ";
                 
         $.each(ex.args, function(i, arg){
-            var argView = self.render(arg, target);
+            var argView = self.render(arg, TARGET);
             if(i > 0) view += " " + self.operators(op).label + " ";
             view += argView;                                             
         });
@@ -48,14 +48,14 @@ net.ntxt.expressions.renderers.plaintext = (function plaintext()
         return view;
   };
     
-    function genericBinaryOpRenderer(ex, target){
+    function genericBinaryOpRenderer(ex){
         var self = this,
             op = ex.op,
                 view = "",
                 arg1 = ex.args[0],
                 arg2 = ex.args[1];
                 
-        view = self.render(arg1, target) + " " + self.operators(op).label + " " + self.render(arg2, target);
+        view = self.render(arg1, TARGET) + " " + self.operators(op).label + " " + self.render(arg2, TARGET);
         return view;    
     };
     
