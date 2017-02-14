@@ -28,21 +28,43 @@ textarea {
     display: inline-block;
     margin: 0.5em;
 	position: relative;
-	background-color: rgba(50,30,0,0.05);
+	background-color: rgba(50, 30, 0, 0.05);
     border-width: 1px;
 	border-style: solid;
 	border-radius: 0.5em;	
 	border-color: rgba(255, 255, 255, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(255, 255, 255, 0.1);	
-	box-shadow: -1px -1px 2px rgba(0, 0, 0, 0.1);
+	box-shadow: -1px -1px 0px rgba(0, 0, 0, 0.1), -2px -2px 0 rgba(255, 255, 255, 0.2);
+	text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3), -1px -1px 0px rgba(255, 255, 255, 0.3);	
+	transition: all 0.5s;
+}
+
+.expression:hover{
+	background-color: rgba(0, 0, 0, 0.1);
+}
+.expression::after{
+	position:absolute;
+	display:inline-block;
+	content: "";
+	width: 0;
+	height: 100%;
+	transition: all 0.5s;
+	background-color: rgba(160,160,160,0.1);
+	color: white;
+	border-radius: 0 0.2em 0.2em 0;		
+}
+.expression:hover::after{
+	display:inline-block;
+	content: " ";
+	font-weight:bold;
+	width: 20px;
 }
 
 .variable{
-  font-family:"Courier New", Courier, monospace;
-	color:#33CC33;
+    color: rgba(40,40,40,1);
 }
 
 .literal{
-  color:#003399;
+  color:#003399;	
 }
 
 .expression.binary > * {
@@ -59,18 +81,15 @@ textarea {
     border-radius: 0;
     margin: 0;
     padding: 0.2em 0.5em;
-	transition: all 1s;
 }
 .expression.false>.operator{
 	color:red;
-	transition: all 1s;
 }
 .expression.true >.operator{
 	color:green;
-	transition: all 1s;
 }
 .operator {
-    background-color: rgba(0, 100, 200, 0.2);
+    background-color: rgba(100, 100, 100, 0.1);
     border-radius: 0.3em;
     color: white;
     font-family: sans-serif, Trebuchet MS;
@@ -79,13 +98,14 @@ textarea {
     margin: 0.2em;
     padding: 0.2em;
     text-transform: uppercase;
-	transition: all 1s;
+	transition: all 0.3s ease-out;
 }
 
 .list > .operator {
     height: 2em;
     line-height: 1.6em;
     margin: -1em 0;
+	padding-right: 0.4em;
 	border-radius: 0 0.5em 0.5em 0;
 	display:inline-block;
 	vertical-align: middle;
@@ -97,9 +117,10 @@ textarea {
 
 
 .argument {
-    background-color: lightgray;
+    background-color: rgba(200, 200, 200, 0.2);
     border-radius: 0.3em;
     padding: 0.2em;
+	transition: all 0.3s ease-out;	
 }
 
 .argument:first-of-type{
@@ -110,7 +131,7 @@ textarea {
 }
 
 .interactive:hover{
-		box-shadow: 0 0 8px green;
+		box-shadow: 2px 2px 8px rgba(255, 255, 255, 1);
 }
 
 .expression ul {
@@ -184,16 +205,16 @@ textarea {
 }
 .evalInput.true:after{
 	content: "\2714";
-	background-color: green;
+	background-color: rgba(0, 200, 0, 1);
 }
 .evalInput:after{
 	content: "\2718";
-	background-color: red;
+	background-color: rgba(200, 0, 0, 1);
 }
 .view2 {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 0.5em;
-    color: black;
+    color: rgba(0, 0, 0, 1);
     display: inline-block;
     font-family: monospace;
     margin: 0.5em;

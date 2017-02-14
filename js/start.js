@@ -2,6 +2,7 @@
 var expAPI = net.ntxt.expressions.context();
 expAPI.addRenderers(net.ntxt.expressions.renderers.html());
 expAPI.addRenderers(net.ntxt.expressions.renderers.plaintext());
+expAPI.addRenderers(net.ntxt.expressions.renderers.english());
 var rules;
 
 
@@ -37,8 +38,10 @@ function render(){
 	//expAPI.context(getInput());
     var view1 = expAPI.render(rules, 'html', getInput());
 	var view2 = expAPI.render(rules, 'plaintext');
+	var view3 = expAPI.render(rules, 'english');
 	$('.view1').html(view1);
 	$('.view2').html(view2);
+	$('.view3').html(view3);
 }
 
 function evaluate(){

@@ -30,7 +30,7 @@ net.ntxt.expressions.renderers.plaintext = (function plaintext()
         var self = this,
             op = ex.op,
                 varName = ex.args[0],
-                view = (self.operators(op).type === 'number') ? varName : '"' + varName + '"';
+                view = (self.operators(op).type === 'number') ? varName : "'" + varName + "'";
         return view;
     };
     
