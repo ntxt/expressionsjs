@@ -4,24 +4,66 @@ expAPI.addRenderers(net.ntxt.expressions.renderers.html());
 expAPI.addRenderers(net.ntxt.expressions.renderers.plaintext());
 expAPI.addRenderers(net.ntxt.expressions.renderers.english());
 var rules;
-
+var formInputTpl = '<span><label>{varName}:</label><input name="{varName}" type="{varType}" value="{varValue}"/></span>';
 
 $(document).ready(function(){
   $.getJSON('./json/exp1.json')
   .done(function(data){
-		$("#json").text(JSON.stringify(data,null,2));
+		$("#json").text(JSON.stringify(data,null,2)).change();
         parseExpr(data);
+		$(".view.input").empty().append(extractInputs());
     })
   .fail(function(jqXHR, textStatus, errorThrown) {
     console.log( "error: " + errorThrown);
   });
   
-  $('input').change(evaluate).change(render);
-
+  $('#json').change(resizeTextBox);
     
 });
 
+function extractInputs(){
+	var form = $("<form/>"),
+		varIndex = {},
+	    varExps = []
+			.concat(expAPI.search(rules, 'VAR-STRING'))
+			.concat(expAPI.search(rules, 'VAR-NUMBER'));
+	
+	for(var i = 0; i < varExps.length; i++){
+		var varName = varExps[i].args[0],
+		    varType = expAPI.typeOfExp(varExps[i]),
+			inputHtml;
+		if(!varIndex[varName]){
+			inputHtml = $(populate(formInputTpl, {varName:varName, varType:varType, varValue:''}));
+			form.append(inputHtml);
+			inputHtml.find('input').change(evaluate).change(render);
+			varIndex[varName] = true;
+		}
+	}		
+	return form;
+}
 
+function resizeTextBox(){
+    this.style.height = this.scrollHeight+'px';
+}
+
+function populate(tpl, params){
+	var out = tpl;
+	for(var name in params){
+		var value = htmlEscape(params[name]);
+		var regex = new RegExp('\{'+name+'\}', 'g');
+		out = out.replace(regex, value);
+	}
+	return out;
+}
+
+function htmlEscape(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 function parseExpr(data){
     try{
@@ -31,23 +73,26 @@ function parseExpr(data){
         $('.expression').mouseenter(showContextMenu);
         
     }catch(e){
-        $('.error').html(e + '<br/>file: ' + e.fileName + '<br/>line: ' + e.lineNumber);
+		var msg = e;
+		if(e.hasOwnProperty('fileName')) e += '<br/>file: ' + e.fileName + '<br/>line: ' + e.lineNumber;
+        $('.error').html(msg);
     }
 }
 function render(){
 	//expAPI.context(getInput());
-    var view1 = expAPI.render(rules, 'html', getInput());
-	var view2 = expAPI.render(rules, 'plaintext');
-	var view3 = expAPI.render(rules, 'english');
-	$('.view1').html(view1);
-	$('.view2').html(view2);
-	$('.view3').html(view3);
+    var viewHtml = expAPI.render(rules, 'html', getInput());
+	var viewMath = expAPI.render(rules, 'plaintext');
+	var viewEnglish = expAPI.render(rules, 'english');
+	$('.view.html').html(viewHtml);
+	$('.view.math p').html(viewMath);
+	$('.view.english p').html(viewEnglish);
 }
 
 function evaluate(){
+	console.log('eval');
 	var entity = getInput();
 	var result = expAPI.evaluate(rules, entity);
-    $('.evalInput').removeClass("false true").addClass(result ? "true" : "false");
+    $('.input').removeClass("false true").addClass(result ? "true" : "false");
 }
 
 function showContextMenu(){
@@ -56,7 +101,23 @@ function showContextMenu(){
 }
 
 function getInput(){
-	var amount = $('input[name=amount]').val();
-	var name = $('input[name=name]').val();
-	return {amount:parseInt(amount), name:name};
+	var result = {},
+		inputs = $('.view.input form input');
+		
+	inputs.each(extractDataFromInput);
+	
+	function extractDataFromInput(){
+		var input = $(this),
+            type = input.prop("type"),
+			name = input.prop("name");
+		switch(type){
+			case "number":
+				result[name] = parseFloat(input.val());
+			break;
+			case "text":
+			default:
+				result[name] = input.val();
+		}
+	}
+	return result;
 }

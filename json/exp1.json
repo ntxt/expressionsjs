@@ -23,8 +23,8 @@
 			{"VAL-STRING":"Melamina"}
 		]},
 		{"LESS":[
-		  {"VAR-NUMBER":"amount"},
-			{"VAL-NUMBER":1500}
+		  {"VAR-NUMBER":"age"},
+			{"VAL-NUMBER":15}
 		]}
 	]}
 ]}

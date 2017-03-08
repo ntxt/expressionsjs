@@ -14,6 +14,7 @@ net.ntxt.expressions.context = (function context()
       addRenderer    : addRenderer,
       evaluate       : evaluate,
       render         : render,
+	  search		 : search,
       operators      : operators
     },
 	_ = {
@@ -101,6 +102,22 @@ net.ntxt.expressions.context = (function context()
             view = renderFun.call(API, expr, input);
         return view;
     };
+	
+    function search(expr, operator){
+        var found = [];
+		recursive(expr);
+		
+		function recursive(expr){
+			if(expr.op === operator) found.push(expr);
+			if(expr.args){
+				for(var i = 0; i < expr.args.length; i++){
+					recursive(expr.args[i]);
+				}
+			}
+		}
+		
+        return found;
+    };	
     
     function getRenderer(op, target){
         if(!hasOp(op))
@@ -164,10 +181,16 @@ net.ntxt.expressions.context = (function context()
             
             if(typeof a[0] === "function"){
                 val = a[0].call(this);
-            }else if(typeof a[0] === "string" && this.hasOwnProperty(a[0])){
-                val = this[a[0]];
+            }else if(typeof a[0] === "string"){
+				if( !this.hasOwnProperty(a[0]) ){
+					err("context does not have property " + a[0]);
+				}else if( typeof this[a[0]] === 'undefined') {
+					err("context property " + a[0] + " is undefined");
+                } else {
+					val = this[a[0]];
+				}
             }else{
-                err("cannot evaluate " + a[0] + " in this context");
+                err("unrecognized type " + (typeof a[0]) + " of property " + a[0] + " in this context");
             }
             if(typeof val === type){
 				return val;

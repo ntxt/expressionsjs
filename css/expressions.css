@@ -10,18 +10,24 @@ h2 {
 }
 textarea {
     background-color: black;
+    border: 0 none;
+    border-radius: 0.5em;
     color: white;
     display: inline-block;
     font-family: monospace;
-    height: 22em;
-    padding: 1em;
-    width: 30em;
-	border: 0;
-	border-radius:0.5em;
+    height: 100%;
+    margin: auto;
+    padding: 0;
+    width: 100%;
 }
-.view1,.view2{
+label {
+    border-bottom: 1px dashed gray;
     display: inline-block;
-    height: 20em;
+    margin: 0 0 0.2em;
+    width: 50%;
+}
+.view{
+    display: inline-block;
     width: 20em;
 }
 .expression {
@@ -184,15 +190,13 @@ textarea {
 	border-width: 9px;
 	margin-top: -9px;
 }
-.evalInput{
+.view.input>div{
 	background-color:#ccc;
     display: inline-block;
     padding: 1em;	
-}
-.evalInput>*{
 	vertical-align: middle;
 }
-.evalInput:after{
+.input:after{
     color: white;
     content: " ";
     display: inline-block;
@@ -203,15 +207,15 @@ textarea {
     text-align: center;
     width: 2em;
 }
-.evalInput.true:after{
+.input.true:after{
 	content: "\2714";
 	background-color: rgba(0, 200, 0, 1);
 }
-.evalInput:after{
+.input:after{
 	content: "\2718";
 	background-color: rgba(200, 0, 0, 1);
 }
-.view2 {
+.view.math >div{
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 0.5em;
     color: rgba(0, 0, 0, 1);
@@ -221,3 +225,11 @@ textarea {
     padding: 1em;
     width: 35em;
 }
+.view p{
+    border: 1px solid red;
+    display: block;
+    height: auto;
+    margin: 0;
+    padding: 1em;
+    width: 100%;
+	}
