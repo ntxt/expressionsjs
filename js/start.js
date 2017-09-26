@@ -68,7 +68,7 @@ function htmlEscape(str) {
 function prettyCompactJson(data){
   return JSON.stringify(data,null,2)
     .replace(/{\s+\"/g,'{"')
-    .replace(/[\"\d]\s+}/g,'}');
+    .replace(/([\"\d])\s+}/g,'$1}');
 }
 
 function parseExpr(data){
