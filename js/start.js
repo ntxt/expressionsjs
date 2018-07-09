@@ -9,10 +9,8 @@ var formInputTpl = '<span><label>{varName}:</label><input name="{varName}" type=
 $(document).ready(function(){
   $.getJSON('./json/exp1.json')
   .done(function(data){
-		//$("#json").text(JSON.stringify(data,null,2)).change();
 		$("#json").text(stringify(data)).change();
         renderNewExpression(data);
-		//render();
     })
   .fail(function(jqXHR, textStatus, errorThrown) {
     console.log( "error: " + errorThrown);
@@ -79,6 +77,12 @@ function htmlEscape(str) {
         .replace(/'/g, '&#39;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+}
+
+function prettyCompactJson(data){
+  return JSON.stringify(data,null,2)
+    .replace(/{\s+\"/g,'{"')
+    .replace(/([\"\d])\s+}/g,'$1}');
 }
 
 function parseExpr(data){
