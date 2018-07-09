@@ -9,17 +9,33 @@ var formInputTpl = '<span><label>{varName}:</label><input name="{varName}" type=
 $(document).ready(function(){
   $.getJSON('./json/exp1.json')
   .done(function(data){
-		$("#json").text(JSON.stringify(data,null,2)).change();
-        parseExpr(data);
-		$(".view.input").empty().append(extractInputs());
+		//$("#json").text(JSON.stringify(data,null,2)).change();
+		$("#json").text(stringify(data)).change();
+        renderNewExpression(data);
+		//render();
     })
   .fail(function(jqXHR, textStatus, errorThrown) {
     console.log( "error: " + errorThrown);
   });
   
-  $('#json').change(resizeTextBox);
+  $('#json')
+  	.change(resizeTextBox)
+  	.change(function(){
+	  try{
+		var data = JSON.parse($(this).val());
+	  } catch (e){
+		alert(e);
+	  }
+	  renderNewExpression(data);
+  });
     
 });
+
+function renderNewExpression(exp){
+	parseExpr(exp);
+	$(".view.input>.form").empty().append(extractInputs());
+	render();
+}
 
 function extractInputs(){
 	var form = $("<form/>"),

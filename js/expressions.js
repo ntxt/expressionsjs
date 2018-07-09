@@ -2,14 +2,16 @@
 var net = net || {};
 net.ntxt = net.ntxt || {};
 net.ntxt.expressions = net.ntxt.expressions || {};
+    
+
 net.ntxt.expressions.context = (function context()
 {
   var API = {
       fromJsonStruct : fromJsonStruct,
       addOp          : addOp,
-	  hasOp          : hasOp,	  
+	  hasOp          : hasOp,
       addVar         : addVar,
-	  typeOfExp	     : typeOfExp,	  
+	  typeOfExp	     : typeOfExp,
       addRenderers   : addRenderers,
       addRenderer    : addRenderer,
       evaluate       : evaluate,
@@ -22,7 +24,7 @@ net.ntxt.expressions.context = (function context()
 		areTwoOrMoreBoolean 	    : areTwoOrMoreBoolean,
 		areTwoOfSameType		    : areTwoOfSameType,
 		areThreeOfSameType	        : areThreeOfSameType
-		
+
 	},
     self = this,
     _operators = {},
@@ -34,12 +36,12 @@ net.ntxt.expressions.context = (function context()
       'number' :true,
       'date'   :true
     };
-    
+
     function err(msg){
     	if(console && console.log) console.log('ERROR: ' + msg);
         throw msg;
     };
-    
+
     function operators(){
         if(arguments.length === 1){
             var opName = arguments[0];
@@ -58,55 +60,55 @@ net.ntxt.expressions.context = (function context()
         };
         return API;
     };
-    
-    
+
+
     function addVar(name, type, valueOrFun){
         variables[name] = {type:type, value:valueOrFun};
         return API;
     };
-    
+
     function hasOp(op){
     	return _operators.hasOwnProperty(op);
     }
-    
+
     function addRenderer(op, target, renderFun){
         if(!hasOp(op))
             throw "Cannot add renderer to an unrecognized operator: " + op;
         renderTargets[target] = true;
         _operators[op].renderers[target] = renderFun;
     }
-    
+
     function addRenderers(provider){
         for(var op in _operators){
             try{
-                addRenderer(op, provider.target, provider.getRenderer(op)); 
+                addRenderer(op, provider.target, provider.getRenderer(op));
             }catch(e){
                 err("error adding renderer for " + op + "\n" + e);
             }
         }
-    }    
-    
+    }
+
     function evaluate(expr, input){
         var op = expr.op || err("missing operator in expr:" + expr),
             def  = _operators[op] || err("unknown operator: " + op),
             args = expr.args || [],
 			result = def.evaluate.apply(input, args);
-			
+
 		expr.result = result;
         return result;
     };
-    
+
     function render(expr, target, input){
         var op = expr.op,
             renderFun = getRenderer(op, target) || err("Missing renderer for: " + op + "  and target: " + target),
             view = renderFun.call(API, expr, input);
         return view;
     };
-	
+
     function search(expr, operator){
         var found = [];
 		recursive(expr);
-		
+
 		function recursive(expr){
 			if(expr.op === operator) found.push(expr);
 			if(expr.args){
@@ -115,10 +117,10 @@ net.ntxt.expressions.context = (function context()
 				}
 			}
 		}
-		
+
         return found;
-    };	
-    
+    };
+
     function getRenderer(op, target){
         if(!hasOp(op))
             throw "Missing definition of operator: " + op + "; known ones: " + getOpNames().join(', ');
@@ -126,31 +128,31 @@ net.ntxt.expressions.context = (function context()
             throw "Missing renderer for operator: " + op + " and target: " + target + "; available ones: " + getTargets(op).join(', ');
         return _operators[op].renderers[target];
     }
-    
+
     function getOpNames(){
         var names = [];
         for(var op in _operators){ names.push(op); }
         return names;
     }
-    
+
     function getTargets(){
         var targets = [],
             src,
             op;
         if(arguments.length > 0 && typeof arguments[0] === "string"){
             op = arguments[0];
-            src = _operators[op].renderers;    
+            src = _operators[op].renderers;
         }else{
             src = renderTargets;
         }
         for(var t in src){ targets.push(t); }
         return targets;
     }
-    
+
     function fromJsonStruct(expStruct){
         var maxRecursion = 10,
             expr = recursive(expStruct, maxRecursion);
-        
+
         function recursive(struct, recursion){
             if(recursion < 0) err("Expression too deep, more than " + maxRecursion + " levels.");
             var expr = {};
@@ -166,19 +168,19 @@ net.ntxt.expressions.context = (function context()
                 }else{
                     expr.args.push(args);
                 }
-            }            
+            }
             return expr;
         }
-        
+
         return expr;
     };
-    
+
     function genericVarEvaluator(type){return function e(){
             var a = arguments,
                 l = a.length,
                 val;
             if(l !== 1) err("one argument (property name or function) required");
-            
+
             if(typeof a[0] === "function"){
                 val = a[0].call(this);
             }else if(typeof a[0] === "string"){
@@ -204,22 +206,22 @@ net.ntxt.expressions.context = (function context()
         var a = arguments,
             l = a.length;
         if(l !== 1) err("one argument (value) required");
-        return a[0];        
+        return a[0];
     };};
 
     function typeOfExp(exp){
     	if(typeof exp.op !== "string") err("Missing expression type (operator).");
     	if(!Array.isArray(exp.args)) err("Missing expression arguments");
-    	if(!hasOp(exp.op)) err("Unknown operator: " + exp.op + "; currently known: " + getOpNames().join(', '));	
+    	if(!hasOp(exp.op)) err("Unknown operator: " + exp.op + "; currently known: " + getOpNames().join(', '));
     	return _operators[exp.op].type;
     }
-    
+
     function assertThat(args, validatorFn){
     	var error = validatorFn.call(this, args);
     	error ? err( error ) : "OK";
     	return args;
     };
-    
+
     function areTwoOfSameType(args){
     	if(args.length !== 2) return "Operator expects exactly 2 arguments, got: " + args.length;
     	var t1 = typeOfExp(args[0]);
@@ -246,15 +248,15 @@ net.ntxt.expressions.context = (function context()
     	return "";
     }
     // ============= OPERATORS ===============
-    
+
     addOp('VAR-STRING',   'string',   '#', genericVarEvaluator('string'));
-    addOp('VAR-NUMBER',   'number',   '#', genericVarEvaluator('number'));    
-    addOp('VAR-BOOLEAN',  'boolean',  '#', genericVarEvaluator('boolean'));    
-    addOp('VAR-DATE',     'date',     '#', genericVarEvaluator('date'));        
+    addOp('VAR-NUMBER',   'number',   '#', genericVarEvaluator('number'));
+    addOp('VAR-BOOLEAN',  'boolean',  '#', genericVarEvaluator('boolean'));
+    addOp('VAR-DATE',     'date',     '#', genericVarEvaluator('date'));
     addOp('VAL-STRING',   'string',   '',  genericLiteralEvaluator('string'));
     addOp('VAL-NUMBER',   'number',   '',  genericLiteralEvaluator('number'));
 
-    addOp('AND', 'boolean', 'and', 
+    addOp('AND', 'boolean', 'and',
         function e(){
             var a = _.assertThat(arguments, _.areTwoOrMoreBoolean);
             for(var i=0; i < a.length; i++){
@@ -263,8 +265,8 @@ net.ntxt.expressions.context = (function context()
             return true;
         }
     );
-	
-    addOp('OR', 'boolean', 'or', 
+
+    addOp('OR', 'boolean', 'or',
         function e(){
             var a = _.assertThat(arguments, _.areTwoOrMoreBoolean);
             for(var i=0; i < a.length; i++){
@@ -273,7 +275,7 @@ net.ntxt.expressions.context = (function context()
             return debug = false;
         }
     );
-	
+
     addOp('EQUAL', 'boolean', '=',
         function e(){
 	        var a = _.assertThat(arguments, _.areTwoOfSameType);
@@ -287,7 +289,7 @@ net.ntxt.expressions.context = (function context()
             return API.evaluate(a[0], this) !== API.evaluate(a[1]);
         }
     );
-    
+
     addOp('GREATER', 'boolean', '>',
         function e(){
             var a = _.assertThat(arguments, _.areTwoOfSameType);
@@ -300,16 +302,15 @@ net.ntxt.expressions.context = (function context()
             var a = _.assertThat(arguments, _.areTwoOfSameType);
             return API.evaluate(a[0], this) < API.evaluate(a[1]);
         }
-    );    
-    
+    );
+
     addOp('BETWEEN', 'boolean', 'between',
         function e(){
             var a = _.assertThat(arguments, _.areThreeOfSameType);
             return API.evaluate(a[0], this) <= API.evaluate(a[1]) && API.evaluate(a[1]) <= API.evaluate(a[2]);
         }
-    ); 
-
+    );
     return API;
 });
-                
+
 Array.isArray||(Array.isArray=function(a){return''+a!==a&&{}.toString.call(a)=='[object Array]'});

@@ -232,4 +232,14 @@ label {
     margin: 0;
     padding: 1em;
     width: 100%;
-	}
+    }
+    
+    .view.error {
+
+        display: block;
+        background-color: rgba(255,155,155,0.8);
+        color: black;
+        border: 1px solid white;
+        border-radius: 4px;
+        padding: 0.25em;
+    }

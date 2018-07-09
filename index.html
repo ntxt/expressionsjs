@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Expressions</title>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.12.0.js"></script>
+<script type ="text/javascript" src="https://raw.githack.com/lydell/json-stringify-pretty-compact/master/index.js"></script>
 <script type="text/javascript" src="./js/expressions.js"></script>
 <script type="text/javascript" src="./js/renderers-html.js"></script>
 <script type="text/javascript" src="./js/renderers-plaintext.js"></script>
@@ -18,18 +19,19 @@
 <textarea id="json"></textarea>
 </div>
 
-<div class='view input'><h2>input data</h2>
-<form>
+<div class='view input'><h2>input data/context</h2>
+<div class="form">
 <!--
 <label>name:</label><input name="name" type="text" value="Olaboga"/><br/>
 <label>amount:</label><input name="amount" type="numeric" value="40"/>
 -->
-</form>
+</div>
+<h2>expression match:</h2>
 </div>
 
 <div class="view html"><h2>tree view</h2>html view </div>
 <div class="view math"><h2>arithmetic notation</h2><p>math view </p></div>
-<div class="view english"><h2>natural language</h2><p>English view </p></div>
+<div class="view english"><h2>(more) natural language</h2><p>English view </p></div>
 <div class="view error"><p></p></div>
 
 </body>

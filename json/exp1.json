@@ -9,7 +9,7 @@
 			{"VAL-STRING":"Olaboga"}
 		]},
 		{"LESS":[
-		  {"VAR-NUMBER":"amount"},
+		  {"VAR-NUMBER":"age"},
 			{"VAL-NUMBER":50}
 		]}
 	]},
